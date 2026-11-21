@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  H6 · 720 屏（1280x720）卡片 / 面板背景：直角更紧、无描边，配合两栏布局用。
+  色值来自 theme_xxx/values/colors.xml，夜间自动走 values-night。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/h6_home_card_bg" />
+    <corners android:radius="6dp" />
+</shape>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  H6 · 1080 屏（1920x1080）按钮样式：屏幕大，按钮更高、字号更大，便于车机触控。
+  文字色来自 theme_xxx/values/colors.xml，黑白夜自动走 values-night。
+-->
+<resources>
+    <style name="H6HomeAction" parent="@android:style/Widget.Button">
+        <item name="android:minHeight">64dp</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/h6_home_action_text_color</item>
+    </style>
+</resources>

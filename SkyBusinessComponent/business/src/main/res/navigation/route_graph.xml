@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/route_graph"
+    app:startDestination="@id/routeFragment">
+
+    <fragment
+        android:id="@+id/routeFragment"
+        android:name="com.sky.automap.component.route.RouteFragment"
+        android:label="路线 / 途经点" />
+</navigation>

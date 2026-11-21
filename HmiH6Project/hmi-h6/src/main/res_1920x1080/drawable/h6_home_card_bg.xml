@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  H6 · 1080 屏（1920x1080）卡片 / 面板背景：圆角更大 + 描边。
+  色值来自 theme_xxx/values/colors.xml，夜间自动走 values-night。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/h6_home_card_bg" />
+    <corners android:radius="12dp" />
+    <stroke
+        android:width="2dp"
+        android:color="@color/h6_home_card_stroke" />
+</shape>

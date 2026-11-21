@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/poi_graph"
+    app:startDestination="@id/poiFragment">
+
+    <fragment
+        android:id="@+id/poiFragment"
+        android:name="com.sky.automap.component.poi.PoiFragment"
+        android:label="POI 检索" />
+</navigation>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  H6 · 红色主题 · 白天配色。
+  构建期选择：./gradlew publish -Ph6.theme=red（默认 blue）。
+
+  与蓝色主题必须同名同集合（h6_home_* 六个颜色），否则切主题会缺资源。
+-->
+<resources>
+    <color name="h6_home_bg">#FDF7F6</color>
+    <color name="h6_home_card_bg">#FFFFFF</color>
+    <color name="h6_home_card_stroke">#F0DAD6</color>
+    <color name="h6_home_title_color">#B3261E</color>
+    <color name="h6_home_status_color">#5F6368</color>
+    <color name="h6_home_action_text_color">#B3261E</color>
+</resources>

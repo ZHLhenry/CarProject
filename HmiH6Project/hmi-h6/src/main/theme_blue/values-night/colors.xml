@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- H6 · 蓝色主题 · 夜间配色（与 values/colors.xml 同名同集合，只换色值）。 -->
+<resources>
+    <color name="h6_home_bg">#0F1115</color>
+    <color name="h6_home_card_bg">#1A1D24</color>
+    <color name="h6_home_card_stroke">#2A2F3A</color>
+    <color name="h6_home_title_color">#8AB4F8</color>
+    <color name="h6_home_status_color">#9AA0A6</color>
+    <color name="h6_home_action_text_color">#8AB4F8</color>
+</resources>

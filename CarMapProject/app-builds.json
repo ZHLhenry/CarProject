@@ -1,0 +1,114 @@
+{
+  "_comment": [
+    "渠道表 —— 全仓库唯一来源。app/build.gradle.kts 在配置阶段直接解析本文件，",
+    "参数写进 BuildConfig，运行期通过 com.sky.automap.channel.ChannelConfig 读取",
+    "（见 app/src/main/java/com/sky/automap/channel）。改完直接构建即可，无需同步。",
+    "",
+    "三段结构：",
+    "  carModels       车型 → 地图厂商绑定 + 允许的 SDK 版本（架构约束，渠道不能突破）",
+    "  builds          渠道，一个键 = 一个 productFlavor；键名就是 flavor 名，",
+    "                  任务名 = assemble + 首字母大写的键名 + Debug",
+    "                  （AGP 只大写首字母，如 assembleE245_h6_8295_front_1920x720_amap850Debug）",
+    "  defaultChannel  默认渠道：./gradlew :app:assembleDefault / :app:installDefault 打的就是它",
+    "                  （IDE 的 Build Variants 默认项由 Studio 按名字排序自己挑，脚本管不了）",
+    "",
+    "carModels 字段：",
+    "  mapVendor    该车型唯一可用的地图厂商：AMAP 高德 / BAIDU 百度",
+    "               （车型源集的 PlatformAssembler 只 import 这一家的实现）",
+    "  mapVersions  该车型允许打包的 SDK 版本：AMAP → 850 / 910，BAIDU → v21 / v22",
+    "",
+    "builds 字段：",
+    "  product     产品名，如 E245",
+    "  carModel    车型（H6 / H9 / …），必须是 carModels 里声明过的键，决定用哪套 HMI 源集",
+    "  chip        车机芯片型号，如 8295 / 6155 / 8155",
+    "  screenType  屏幕位置：FRONT 前排 / REAR 后排 / CEILING 吸顶 / ARMREST 扶手",
+    "              取值必须与 ChannelConfig.ScreenType 的枚举名一致（构建期校验）",
+    "  screenWidth / screenHeight  分辨率像素",
+    "  mapVendor   地图厂商，必须等于所属 carModel 的 mapVendor",
+    "  mapVersion  地图 SDK 版本，必须在该 carModel 的 mapVersions 里",
+    "",
+    "新增车型（如 H10）：",
+    "  1) carModels 加一段；",
+    "  2) versions.properties 加 hmi-h10 并执行 ./sync-versions.py；",
+    "  3) 新建 ../HmiH10Project 并 publish（build-all.py 会按 carModels 自动追加）",
+    "  4) 建 app/src/h10/{java,res}：PlatformAssembler（同包同名）+ app_name",
+    "构建脚本不用改。新增渠道：只在 builds 里加一条。",
+    "",
+    "ID 命名约定：{产品}_{车型}_{芯片}_{屏型}_{宽}x{高}_{地图}{版本}，全部小写",
+    "例：e245_h6_8295_front_1920x720_amap850",
+    "注意：ID 只是给人看和写入 BuildConfig 的标签，构建逻辑一律读下面的字段，不解析 ID。"
+  ],
+  "defaultChannel": "e245_h6_8295_front_1920x720_amap850",
+  "carModels": {
+    "h6": {
+      "mapVendor": "AMAP",
+      "mapVersions": ["850", "910"]
+    },
+    "h9": {
+      "mapVendor": "BAIDU",
+      "mapVersions": ["v21", "v22"]
+    }
+  },
+  "builds": {
+    "e245_h6_8295_front_1920x720_amap850": {
+      "product": "E245",
+      "carModel": "H6",
+      "chip": "8295",
+      "screenType": "FRONT",
+      "screenWidth": 1920,
+      "screenHeight": 720,
+      "mapVendor": "AMAP",
+      "mapVersion": "850"
+    },
+    "e245_h6_8295_rear_1920x720_amap850": {
+      "product": "E245",
+      "carModel": "H6",
+      "chip": "8295",
+      "screenType": "REAR",
+      "screenWidth": 1920,
+      "screenHeight": 720,
+      "mapVendor": "AMAP",
+      "mapVersion": "850"
+    },
+    "e245_h6_8295_ceiling_1280x720_amap910": {
+      "product": "E245",
+      "carModel": "H6",
+      "chip": "8295",
+      "screenType": "CEILING",
+      "screenWidth": 1280,
+      "screenHeight": 720,
+      "mapVendor": "AMAP",
+      "mapVersion": "910"
+    },
+    "e245_h6_8295_armrest_1024x600_amap850": {
+      "product": "E245",
+      "carModel": "H6",
+      "chip": "8295",
+      "screenType": "ARMREST",
+      "screenWidth": 1024,
+      "screenHeight": 600,
+      "mapVendor": "AMAP",
+      "mapVersion": "850"
+    },
+    "e245_h9_6155_front_2560x1440_baiduv22": {
+      "product": "E245",
+      "carModel": "H9",
+      "chip": "6155",
+      "screenType": "FRONT",
+      "screenWidth": 2560,
+      "screenHeight": 1440,
+      "mapVendor": "BAIDU",
+      "mapVersion": "v22"
+    },
+    "e245_h9_6155_rear_1920x720_baiduv21": {
+      "product": "E245",
+      "carModel": "H9",
+      "chip": "6155",
+      "screenType": "REAR",
+      "screenWidth": 1920,
+      "screenHeight": 720,
+      "mapVendor": "BAIDU",
+      "mapVersion": "v21"
+    }
+  }
+}

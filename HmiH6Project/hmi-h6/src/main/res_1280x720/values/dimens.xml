@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  H6 · 720 屏（1280x720）专用尺寸，位于 res_1280x720。
+  1280x720 上车机多按 160dpi 计算（1dp = 1px），所以这里就是设计稿的像素值。
+
+  两个分辨率目录的资源名必须一一对应（这里是 h6_home_*，1080 那份也是同一批名字），
+  只改数值；换分辨率时整目录替换，缺项就是运行期找不到资源。
+-->
+<resources>
+    <dimen name="h6_home_padding">24dp</dimen>
+    <dimen name="h6_home_logo_size">72dp</dimen>
+    <dimen name="h6_home_logo_margin_top">24dp</dimen>
+    <dimen name="h6_home_title_margin_top">16dp</dimen>
+    <dimen name="h6_home_title_text_size">22sp</dimen>
+    <dimen name="h6_home_status_margin_top">8dp</dimen>
+    <dimen name="h6_home_status_text_size">13sp</dimen>
+    <dimen name="h6_home_button_margin_top">28dp</dimen>
+    <dimen name="h6_home_button_gap">12dp</dimen>
+</resources>

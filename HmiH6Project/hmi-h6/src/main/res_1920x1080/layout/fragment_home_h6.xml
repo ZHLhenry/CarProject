@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  H6 · 1080 屏（1920x1080）首页布局，位于 res_1920x1080（构建期由 -Ph6.resolution 选中）。
+  屏幕足够高，用居中白色卡片承载内容（720 那份是满屏左右两栏）。
+
+  注意：这里的 id 必须与 res_1280x720 那份完全一致（HomeH6Fragment 直接 findViewById）：
+    tv_model / tv_status / btn_open_poi / btn_open_navi / btn_open_route
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/h6_home_bg"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="@dimen/h6_home_padding">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/h6_home_card_bg"
+        android:elevation="2dp"
+        android:orientation="vertical"
+        android:padding="@dimen/h6_home_padding">
+
+        <com.sky.widget.image.SkyRoundImageView
+            android:layout_width="@dimen/h6_home_logo_size"
+            android:layout_height="@dimen/h6_home_logo_size"
+            android:layout_gravity="center_horizontal"
+            android:contentDescription="@string/h6_home_logo_desc"
+        android:src="@mipmap/h6_home_logo" />
+
+        <TextView
+            android:id="@+id/tv_model"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/h6_home_title_margin_top"
+            android:text="@string/h6_home_model_title"
+            android:textColor="@color/h6_home_title_color"
+            android:textSize="@dimen/h6_home_title_text_size"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/h6_home_status_margin_top"
+            android:gravity="center"
+            android:text="@string/h6_home_status_placeholder"
+            android:textColor="@color/h6_home_status_color"
+            android:textSize="@dimen/h6_home_status_text_size" />
+
+        <Button
+            android:id="@+id/btn_open_poi"
+            style="@style/H6HomeAction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/h6_home_button_margin_top"
+            android:text="@string/h6_home_action_poi" />
+
+        <Button
+            android:id="@+id/btn_open_navi"
+            style="@style/H6HomeAction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/h6_home_button_gap"
+            android:text="@string/h6_home_action_navi" />
+
+        <Button
+            android:id="@+id/btn_open_route"
+            style="@style/H6HomeAction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/h6_home_button_gap"
+            android:text="@string/h6_home_action_route" />
+    </LinearLayout>
+</LinearLayout>

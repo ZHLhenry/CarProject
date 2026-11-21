@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  H6 默认语言（简体中文）。
+  多语言走标准 locale 限定符，运行时跟随系统语言自动切换，和分辨率 / 主题的构建期选择无关：
+
+    res/values/strings.xml          默认（简体）
+    res/values-en/strings.xml       英文
+    res/values-zh-rTW/strings.xml   繁体中文
+
+  新增语言：复制 values/strings.xml 到 values-<locale>/，只改 value，name 一个都不能少。
+  布局 / 导航图 / 代码里不允许再出现中文字面量。
+-->
+<resources>
+    <string name="h6_home_model_title">H6 车型 HMI</string>
+    <string name="h6_home_logo_desc">H6 车型标识</string>
+    <string name="h6_home_status_placeholder">—</string>
+    <string name="h6_home_status_ready">基础框架 SkyMVVM / SkyWidget / SkyMultiStateLayout 已就绪</string>
+    <string name="h6_home_action_poi">进入 POI 检索</string>
+    <string name="h6_home_action_navi">进入路径规划</string>
+    <string name="h6_home_action_route">进入路线 / 途经点</string>
+    <string name="h6_home_nav_label">H6 首页</string>
+</resources>

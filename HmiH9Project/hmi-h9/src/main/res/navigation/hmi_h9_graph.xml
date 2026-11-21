@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/hmi_h9_graph"
+    app:startDestination="@id/homeH9Fragment">
+
+    <fragment
+        android:id="@+id/homeH9Fragment"
+        android:name="com.sky.automap.hmi.h9.HomeH9Fragment"
+        android:label="H9 首页" />
+
+    <!-- 业务组件层提供的子导航图 -->
+    <include app:graph="@navigation/poi_graph" />
+    <include app:graph="@navigation/navi_graph" />
+    <include app:graph="@navigation/route_graph" />
+</navigation>

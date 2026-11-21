@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- H6 · English. 与 res/values/strings.xml 同名同集合，只翻译 value。 -->
+<resources>
+    <string name="h6_home_model_title">H6 HMI</string>
+    <string name="h6_home_logo_desc">H6 model logo</string>
+    <string name="h6_home_status_placeholder">—</string>
+    <string name="h6_home_status_ready">SkyMVVM / SkyWidget / SkyMultiStateLayout is ready</string>
+    <string name="h6_home_action_poi">POI Search</string>
+    <string name="h6_home_action_navi">Route Planning</string>
+    <string name="h6_home_action_route">Route / Waypoints</string>
+    <string name="h6_home_nav_label">H6 Home</string>
+</resources>

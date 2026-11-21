@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  H6 · 720 屏（1280x720）按钮样式：屏幕矮，按钮压扁一点，字号略小。
+  文字色来自 theme_xxx/values/colors.xml，黑白夜自动走 values-night。
+-->
+<resources>
+    <style name="H6HomeAction" parent="@android:style/Widget.Button">
+        <item name="android:minHeight">44dp</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/h6_home_action_text_color</item>
+    </style>
+</resources>

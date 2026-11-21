@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  H6 · 1080 屏（1920x1080）专用尺寸，位于 res_1920x1080。
+  相对 1280x720 设计稿放大 1.5 倍（沿用 160dpi 口径），改数值时保持比例即可。
+
+  两个分辨率目录的资源名必须一一对应（这里是 h6_home_*，720 那份也是同一批名字），
+  只改数值；换分辨率时整目录替换，缺项就是运行期找不到资源。
+-->
+<resources>
+    <dimen name="h6_home_padding">36dp</dimen>
+    <dimen name="h6_home_logo_size">108dp</dimen>
+    <dimen name="h6_home_logo_margin_top">36dp</dimen>
+    <dimen name="h6_home_title_margin_top">24dp</dimen>
+    <dimen name="h6_home_title_text_size">33sp</dimen>
+    <dimen name="h6_home_status_margin_top">12dp</dimen>
+    <dimen name="h6_home_status_text_size">20sp</dimen>
+    <dimen name="h6_home_button_margin_top">42dp</dimen>
+    <dimen name="h6_home_button_gap">18dp</dimen>
+</resources>
