@@ -9,7 +9,7 @@
 // 构建：./gradlew :app:assembleDefault（默认渠道）/ ./gradlew assembleDebug（全部渠道）
 // ============================================================================
 
-// AAR 版本表：唯一来源是 versions.properties，由 ./sync-versions.py 同步到各工程
+// AAR 版本表：唯一来源是 versions.properties，由 ./versions.py sync 同步到各工程
 // gradle.properties 的 automap.version.* 键；:app 模块直接读这些属性（见 app/build.gradle.kts），
 // 这里不再中转任何中间变量 —— 根脚本里的顶层语句越少，IDE 的脚本分析越不会出错。
 // SkyBuild 全局共享配置（applicationId 为壳工程基准包名，具体车型由 :app 的 Flavor 覆盖）
@@ -25,7 +25,7 @@ extra["skyBuild.applicationId"] = "com.sky.automap"
 //     1. 应用版本（本节）→ 进 APK，用户/车机看到的版本，改这里 + 重新打包即可；
 //     2. AAR 版本（CarMapProject 下的 versions.properties，按 artifact 独立）→ Maven 坐标里的 1.0.0，
 //        只决定壳工程解析到哪一份 AAR，改它必须重新发布 AAR 才生效。
-//   `./bump-version.py <artifact> x.y.z` 或 `--all x.y.z` 只动第 2 套；第 1 套需手工改本节。
+//   `./versions.py bump <artifact> x.y.z` 或 `./versions.py bump --all x.y.z` 只动第 2 套；第 1 套需手工改本节。
 extra["skyBuild.versionCode"] = 100
 extra["skyBuild.versionName"] = "1.0.0"
 extra["skyBuild.compileSdk"] = 37

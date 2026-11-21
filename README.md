@@ -14,12 +14,11 @@ lib/carProject/
 │   ├── maven-repo/         本地 Maven 仓库（6 个上游工程 publish 的产物，编译期依赖源）
 │   ├── versions.properties ★ AAR 版本表：13 个 artifact 各一行，全仓库唯一来源
 │   ├── app-builds.json    ★ 渠道表：APP_BUILD_ID → 车型/芯片/产品/屏型/分辨率/地图厂商与版本
-│   ├── build-all.py        一键按序发布 + 打包（默认渠道；--all-channels 才全量）
-│   ├── bump-version.py     升级 AAR 版本（改完自动同步到各工程）
-│   ├── sync-versions.py    versions.properties → 各工程 gradle.properties
+│   ├── build-all.py        一键按序发布 AAR（--assemble 才顺带打 APK）
+│   ├── versions.py         版本表 → 各工程 gradle.properties；bump 升版 / sync 同步 / check 校验
 │   ├── projects.json      ★ 发布流水线清单：固定架构栈顺序 + artifact → 工程
 │   ├── pipeline.py         上面几个 py 脚本共用的配置读取（不硬编码工程名）
-│   └── （无脚本插件：版本号由 sync-versions.py 同步进各工程 gradle.properties）
+│   └── （无脚本插件：版本号由 versions.py sync 同步进各工程 gradle.properties）
 └── （脚本全部收在 CarMapProject/ 里，根目录只有 7 个工程 + README）
 ```
 
@@ -56,7 +55,7 @@ lib/carProject/
 - 每个库工程都配了 `maven-publish`：`./gradlew publish` 输出到 `../CarMapProject/maven-repo/com/sky/automap/<模块名>/<版本>/`（AAR + POM + Gradle module 元数据，POM 里带完整的传递依赖）。
 - 每个工程的 `settings.gradle.kts` 都把 `../CarMapProject/maven-repo`（壳工程自己是 `${rootDir}/maven-repo`）放在仓库列表**第一位**，下游工程直接命中本地 AAR，不走远程。
 - 坐标统一：`group = com.sky.automap`、`artifactId = 模块名`、`version = CarMapProject/versions.properties 里该 artifact 那一行`。
-- 版本号按 artifact 分开记（唯一来源 `CarMapProject/versions.properties`，由 `CarMapProject/sync-versions.py` 同步进各工程 `gradle.properties` 的 `automap.version.*`），因此**允许单模块升版**：只把某个 AAR 升到 1.0.1，其余仍是 1.0.0。
+- 版本号按 artifact 分开记（唯一来源 `CarMapProject/versions.properties`，由 `CarMapProject/versions.py sync` 同步进各工程 `gradle.properties` 的 `automap.version.*`），因此**允许单模块升版**：只把某个 AAR 升到 1.0.1，其余仍是 1.0.0。
 - 同工程内部的模块（如 `map-impl-amap` → `map-api`）仍用 `project(":map-api")` 依赖，发布时自动映射成同样的 Maven 坐标，本地开发不必先 publish。
 - 全仓库只有 `CarMapProject/maven-repo/` 这一份 AAR 产物（带 POM 的仓库形态），没有额外的平铺导出目录——同一批文件不存两份，改版本后只需重建这一处。
 
@@ -90,8 +89,9 @@ cd ../CarMapProject     && ./gradlew assembleDebug # 壳工程出包
 一键脚本（推荐）：
 
 ```bash
-./CarMapProject/build-all.py                # 按序发布全部 AAR，再打「默认渠道」Debug APK
-./CarMapProject/build-all.py --release       # 同上，打默认渠道 Release
+./CarMapProject/build-all.py                 # 只按序发布全部 AAR（不打 APK）
+./CarMapProject/build-all.py --assemble      # 发布 + 打「默认渠道」Debug APK
+./CarMapProject/build-all.py --assemble --release   # 发布 + 默认渠道 Release
 ./CarMapProject/build-all.py --all-channels  # 发布 + 打全部渠道
 ```
 
@@ -251,7 +251,7 @@ binding.v910.Amap910Binding   只写改动：隐私合规、构造参数、同�
 
 1. 复制 `HmiH9Project` → `HmiH10Project`，改 `settings.gradle.kts` 的 `rootProject.name`、模块目录名、`android.namespace`、`gradle.properties`。
 2. HMI 工程里新增 `HmiH10Entry`（实现 `hmi-api` 的 `HmiEntry`）、首页 Fragment 与导航图，`./gradlew publish` 发布 `hmi-h10`。
-3. `CarMapProject/versions.properties` 加一行 `hmi-h10=1.0.0`，执行 `./sync-versions.py`（`build-all.py` 会自动追加 `HmiH10Project` 到发布顺序，无需改脚本）。
+3. `CarMapProject/versions.properties` 加一行 `hmi-h10=1.0.0`，执行 `./versions.py sync`（`build-all.py` 会自动追加 `HmiH10Project` 到发布顺序，无需改脚本）。
 4. `CarMapProject/app-builds.json` 的 `carModels` 加一段：`"h10": { "mapVendor": "AMAP", "mapVersions": ["910"] }`，再在 `builds` 里加该车型的渠道。
 5. 新增车型源集 `app/src/h10/java/com/sky/automap/assemble/PlatformAssembler.kt`（与 h6/h9 同包同名，注入 `HmiH10Entry` + 厂商实现）与 `app/src/h10/res/values/strings.xml`（`app_name`）。
 6. 若新车型用新地图厂商：在 `SkyMapAdapter` 里加 `map-impl-<厂商>`（内含 `binding.v*` 包）与各版本 `map-sdk-<厂商>-<版本>`；壳工程只在 `carModels` 里写上新厂商即可，`build.gradle.kts` 一行都不用动。
@@ -287,7 +287,7 @@ binding.v910.Amap910Binding   只写改动：隐私合规、构造参数、同�
 | 当前值 | `100` / `1.0.0` | 13 个 artifact 均为 `1.0.0` |
 | 作用 | 写进 APK 的 `AndroidManifest`（`aapt2 dump badging` 可见），车机/用户看到的版本 | Maven 坐标 `com.sky.automap:<artifact>:<表里那一行>`，只决定壳工程解析到哪份 AAR |
 | 生效方式 | 重新打包 | `publish` 对应工程；壳工程下次构建即按新版本解析 |
-| 一键修改 | 无（手工改两行） | `./CarMapProject/bump-version.py <artifact> <版本>` 单个 / `--all <版本>` 全部 |
+| 一键修改 | 无（手工改两行） | `./CarMapProject/versions.py bump <artifact> <版本>` 单个 / `--all <版本>` 全部 |
 
 **只有壳工程 `CarMapProject` 能改 APK 版本号。** 因为只有 `:app` 是 `com.android.application`，
 SkyBuildLogic 也只把这两个值写给 `ApplicationDefaultConfig`。其余库工程是 library，
@@ -306,7 +306,7 @@ APK 仍是 `versionCode=100 versionName=1.0.0`。因此这些库里不再声明�
 `CarMapProject/versions.properties` 按 artifact 逐行记版本，所以可以只升一个：
 
 ```bash
-./CarMapProject/bump-version.py map-sdk-amap-850 1.0.1   # 只改这一行，其余 12 个仍是 1.0.0
+./CarMapProject/versions.py bump map-sdk-amap-850 1.0.1   # 只改这一行，其余 12 个仍是 1.0.0
 cd SkyMapAdapter && ./gradlew :map-sdk-amap-850:publish
 cd ../CarMapProject && ./gradlew :app:assembleDefault   # 打默认渠道即可看到新 AAR
 ```
@@ -314,9 +314,9 @@ cd ../CarMapProject && ./gradlew :app:assembleDefault   # 打默认渠道即可�
 机制说明：
 
 - 依赖声明不再写死版本，而是 `com.sky.automap:<artifact>:${skyVersionOf("<artifact>")}`，即「按表取」——表里改一行，全链路（发布版本 + 下游解析 + 各渠道依赖注入）自动跟随，不存在「改了号但对不上」。
-- 装载链路是 `versions.properties` →（`CarMapProject/sync-versions.py`）→ 各工程 `gradle.properties` 的 `automap.version.*` →（各 `build.gradle.kts` 读 Gradle 属性）。人只改 `versions.properties` 一个文件，改完跑一次 `./sync-versions.py`（在 `CarMapProject/` 下）；`bump-version.py` 和 `build-all.py` 都会自动调用它，正常流程不用记这条命令。
+- 装载链路是 `versions.properties` →（`CarMapProject/versions.py sync`）→ 各工程 `gradle.properties` 的 `automap.version.*` →（各 `build.gradle.kts` 读 Gradle 属性）。人只改 `versions.properties` 一个文件，改完跑一次 `./versions.py sync`（在 `CarMapProject/` 下）；`versions.py bump` 内部会立即同步，`build-all.py` 也会先跑一次 sync，正常流程不用记这条命令。
 - 为什么不直接让 `build.gradle.kts` 读 properties 文件、或抽成 `versions.gradle.kts` + `apply(from = ...)`：独立 `.gradle.kts` 脚本要靠 apply 关联才能拿到 `Project` 接收者，IDE 对这种脚本插件的解析不稳定——Gradle 命令行一切正常，编辑器里却整篇标红，严重时还会连带把宿主脚本里后续的 `extra[...]` 判为 Unresolved。`gradle.properties` 是纯文本、不参与脚本分析，`build.gradle.kts` 里只剩几行 `HashMap` + `startsWith`，IDE 不会再纠结算术。
-- 一致性由 `CarMapProject/sync-versions.py --check` 保证（不一致时退出码 1），可挂 CI 或 pre-commit，防止「改了表忘了同步」。
+- 一致性由 `CarMapProject/versions.py check` 保证（不一致时退出码 1），可挂 CI 或 pre-commit，防止「改了表忘了同步」。
 - **多版本可以共存**：`maven-repo` 里 `map-sdk-amap-850/1.0.0` 与 `1.0.1` 是并列目录，Gradle 按依赖声明取，不会误用旧版。
 - `map-sdk-*` 这类「只被壳工程注入、没有别的 AAR 依赖它」的叶子模块，单独升版零风险（实测：只升 850 到 1.0.1，h6 的 runtime classpath 里只有 `map-sdk-amap-850:1.0.1`，其余 7 个仍是 `1.0.0`）。
 - 升**被依赖**的模块（如 `map-api`）要注意兼容性：下游 AAR 的 POM 里仍写着旧版本，靠 Gradle 的版本仲裁取高者（壳工程显式声明新版本，会赢）；但那些 AAR 是按旧 API 编的，**必须保证二进制兼容**（只加不改不删）。做不到兼容，就得把依赖它的模块一起重编、一起升版——这才是「版本对齐」真正要保证的东西，而版本号本身只是标签。

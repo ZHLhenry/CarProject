@@ -114,13 +114,13 @@ registerChainCheck(
 // groupId 固定 com.sky.automap，artifactId = 模块名，版本取CarMapProject 下的 versions.properties
 // 中该 artifact 那一行；仓库位于 CarMapProject/maven-repo（与其它工程共享，免私服即可联调）。
 val automapGroup = "com.sky.automap"
-// AAR 版本表：唯一来源是 CarMapProject/versions.properties，由 ./sync-versions.py 同步到
+// AAR 版本表：唯一来源是 CarMapProject/versions.properties，由 ./versions.py sync 同步到
 // 本工程 gradle.properties 的 automap.version.* 键。这里直接读 Gradle 属性，不碰 extra、
 // 不引脚本插件 —— IDE 对顶层语句的脚本分析不可靠，写得越少越不会红。
 fun skyVersionOf(artifact: String): String =
     providers.gradleProperty("automap.version.$artifact").orNull
         ?: throw GradleException(
-            "gradle.properties 缺少 automap.version.$artifact，请先执行 CarMapProject/sync-versions.py"
+            "gradle.properties 缺少 automap.version.$artifact，请先执行 CarMapProject/versions.py sync"
         )
 
 subprojects {

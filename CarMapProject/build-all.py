@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
-"""一键构建：按架构依赖顺序发布各独立工程，再按「渠道」组装壳工程。
+"""按架构依赖顺序发布各独立工程，可选再打壳工程 APK。
 
-    基建层 → 地图适配层 → 业务组件层 → HMI 契约 → HMI 车型工程 → 壳工程
+    基建层 → 地图适配层 → 业务组件层 → HMI 契约 → HMI 车型工程
+
+发布 AAR 与打 APK 是两件事，所以**默认只发布**；要 APK 才显式加参数
+（日常改完代码通常只需要其中一个，混在一起会白跑 6 次 Gradle + 一次继承链校验）。
 
 用法（在 CarMapProject 目录下，或在 carProject 根执行 ./CarMapProject/build-all.py）：
 
-  ./build-all.py                      # 发布全部 AAR，再打「默认渠道」Debug 包
-  ./build-all.py --release            # 发布全部 AAR，再打「默认渠道」Release 包
-  ./build-all.py --all-channels       # 发布全部 AAR，再打全部渠道的 Debug 包
-  ./build-all.py --all-channels --release
+  ./build-all.py                      # 只发布全部 AAR（sync versions + 继承链校验 + publish）
+  ./build-all.py --assemble           # 发布后打「默认渠道」Debug 包
+  ./build-all.py --assemble --release # 发布后打「默认渠道」Release 包
+  ./build-all.py --all-channels       # 发布后打全部渠道的 Debug 包
   ./build-all.py assembleE245_h6_8295_front_1920x720_amap850Debug
-                                      # 透传任意 gradle 任务（可给多个）
+                                      # 发布后透传任意 gradle 任务（可给多个）
 
-渠道不是车型：一个渠道一个 APK。默认只打 app-builds.json 里 defaultChannel
-那一个（= :app:assembleDefault），要全量才加 --all-channels。换默认渠道只改 JSON。
+渠道不是车型：一个渠道一个 APK。默认渠道取 app-builds.json 的 defaultChannel
+（= :app:assembleDefault）；换默认渠道只改 JSON。
 
 发布顺序、车型列表、默认渠道都从 app-builds.json / projects.json 读（见 pipeline.py），
 本脚本不硬编码任何工程名或渠道名。
@@ -46,15 +49,7 @@ def run(title: str, cmd: list, cwd: Path) -> None:
     subprocess.run(cmd, cwd=str(cwd), check=True)
 
 
-def list_outputs() -> None:
-    print()
-    print("APK 产物：")
-    apks = sorted((ROOT / "app/build/outputs/renamed-apk").glob("*/*/*.apk"))
-    for apk in apks:
-        print(f"  {apk.relative_to(BASE)}")
-    if not apks:
-        print("  （无）")
-
+def list_outputs(show_apk: bool) -> None:
     print()
     print("AAR 产物（maven-repo，壳工程编译时从这里取）：")
     aars = sorted((ROOT / "maven-repo").rglob("*.aar"))
@@ -63,29 +58,49 @@ def list_outputs() -> None:
     if not aars:
         print("  （无）")
 
+    if not show_apk:
+        return
+
+    print()
+    print("APK 产物：")
+    apks = sorted((ROOT / "app/build/outputs/renamed-apk").glob("*/*/*.apk"))
+    for apk in apks:
+        print(f"  {apk.relative_to(BASE)}")
+    if not apks:
+        print("  （无）")
+
 
 def main() -> int:
     args = sys.argv[1:]
-    all_channels = "--all-channels" in args or "-a" in args
+    want_assemble = "--assemble" in args
+    all_channels = "--all-channels" in args
     release = "--release" in args
-    extra = [a for a in args if a not in ("--all-channels", "-a", "--release")]
+    extra = [a for a in args if a not in ("--assemble", "--all-channels", "--release")]
 
     build_type = "Release" if release else "Debug"
     if extra:
         tasks, scope = extra, "透传任务"
     elif all_channels:
         # assembleDebug / assembleRelease = 该 buildType 下全部渠道
-        tasks, scope = [f":app:assemble{build_type}"], f"全部渠道 {build_type}"
+        tasks, scope = [f":app:assemble{build_type}"], f"发布 AAR + 全部渠道 {build_type}"
+    elif want_assemble:
+        tasks, scope = [DEFAULT_TASKS[build_type]], (
+            f"发布 AAR + 默认渠道 {pipeline.default_channel()} {build_type}"
+        )
     else:
-        tasks, scope = [DEFAULT_TASKS[build_type]], f"默认渠道 {pipeline.default_channel()} {build_type}"
+        tasks, scope = [], "只发布 AAR（不打 APK）"
 
-    print(f"壳工程打包范围：{scope}")
-    print(f"  → {' '.join(tasks)}")
+    if release and not tasks:
+        print("⚠ --release 需要配合 --assemble / --all-channels / 显式 gradle 任务才有意义，已忽略")
+
+    print(f"本次范围：{scope}")
+    if tasks:
+        print(f"  → {' '.join(tasks)}")
     print(f"发布顺序：{' → '.join(pipeline.publish_order())}")
 
     try:
         # 各工程读自己 gradle.properties 里的 automap.version.*，构建前先与版本表对齐
-        run("sync versions", [sys.executable, str(ROOT / "sync-versions.py")], ROOT)
+        run("sync versions", [sys.executable, str(ROOT / "versions.py"), "sync"], ROOT)
 
         # 地图 SDK 继承链静态校验（CI 门禁，publish 之前必须先绿）
         run(
@@ -102,13 +117,20 @@ def main() -> int:
                 continue
             run(f"publish: {project}", [gradlew(target), "publish", "--console=plain"], target)
 
-        run("assemble: CarMapProject", [gradlew(ROOT), *tasks, "--console=plain"], ROOT)
+        if tasks:
+            run("assemble: CarMapProject", [gradlew(ROOT), *tasks, "--console=plain"], ROOT)
+        else:
+            print()
+            print("已发布 AAR；需要 APK 时再单独打包：")
+            print("  ./gradlew :app:assembleDefault     # 默认渠道 Debug")
+            print("  ./gradlew assembleDebug            # 全部渠道 Debug")
+            print("  ./build-all.py --assemble          # 发布 + 默认渠道 Debug（一条命令）")
     except subprocess.CalledProcessError as exc:
         print()
         print(f"✗ 失败（退出码 {exc.returncode}）：{' '.join(exc.cmd)}")
         return exc.returncode or 1
 
-    list_outputs()
+    list_outputs(show_apk=bool(tasks))
     return 0
 
 

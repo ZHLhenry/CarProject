@@ -230,7 +230,7 @@ appBuilds.values.forEach { build ->
    换成新基线；基线模块 `AmapSdk.ORDER` 加 `V920`；
 7. `./gradlew verifyMapSdkChain` 必须绿，然后 `./gradlew publish`；
 8. 壳工程：`app-builds.json` 的 `carModels.<车型>.mapVersions` 加 `"920"`、`versions.properties` 加
-   `map-sdk-amap-920`，然后 `./sync-versions.py`；装配器不用改（版本走 `BuildConfig.APP_MAP_VERSION`）。
+   `map-sdk-amap-920`，然后 `./versions.py sync`；装配器不用改（版本走 `BuildConfig.APP_MAP_VERSION`）。
 
 厂商层、业务组件、HMI 工程**一行都不用改**。
 

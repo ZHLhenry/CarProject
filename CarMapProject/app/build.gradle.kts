@@ -7,11 +7,11 @@ plugins {
 }
 
 // 依赖的其它独立工程发布版本（../CarMapProject/maven-repo 中的 com.sky.automap:*），
-// 版本来自 gradle.properties 的 automap.version.*（由 ./sync-versions.py 从版本表同步）
+// 版本来自 gradle.properties 的 automap.version.*（由 ./versions.py sync 从版本表同步）
 fun skyVersionOf(artifact: String): String =
     providers.gradleProperty("automap.version.$artifact").orNull
         ?: throw GradleException(
-            "gradle.properties 缺少 automap.version.$artifact，请先执行 CarMapProject/sync-versions.py"
+            "gradle.properties 缺少 automap.version.$artifact，请先执行 CarMapProject/versions.py sync"
         )
 
 // ===========================================================================

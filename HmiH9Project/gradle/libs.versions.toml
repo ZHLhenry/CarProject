@@ -4,34 +4,5 @@
 # ---------------------------------------------------------------------------
 buildLogic = "1.2.9"
 
-# ---------------------------------------------------------------------------
-# Infrastructure 基建层引用的 Sky 系列库
-# ---------------------------------------------------------------------------
-skymvvm = "1.2.4"
-skywidget = "1.1.5"
-skymultistatelayout = "1.0.1"
-
-# ---------------------------------------------------------------------------
-# AndroidX / Material
-# ---------------------------------------------------------------------------
-coreKtx = "1.19.1"
-appcompat = "1.8.0"
-material = "1.13.0"
-constraintlayout = "2.2.2"
-
-[libraries]
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
-androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-
-# Sky 系列基础库（SkyMVVM 网络/MVVM 架构，SkyWidget 通用 UI 控件，SkyMultiStateLayout 多状态）
-skymvvm = { module = "com.sky.lib:SkyMVVM", version.ref = "skymvvm" }
-skywidget = { module = "com.sky.lib:SkyWidget", version.ref = "skywidget" }
-skymultistatelayout = { module = "com.sky.lib:SkyMultiStateLayout", version.ref = "skymultistatelayout" }
-
 [plugins]
-sky-android-application = { id = "sky.android.application", version.ref = "buildLogic" }
-sky-android-application-flavors = { id = "sky.android.application.flavors", version.ref = "buildLogic" }
-sky-android-library = { id = "sky.android.library", version.ref = "buildLogic" }
 sky-android-library-common = { id = "sky.android.library.common", version.ref = "buildLogic" }

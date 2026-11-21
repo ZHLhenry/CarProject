@@ -77,11 +77,11 @@ android {
 }
 
 // 跨工程依赖版本：唯一来源是 CarMapProject/versions.properties，
-// 由 ./sync-versions.py 同步到 gradle.properties 的 automap.version.*（按 artifact 独立，支持单模块升版）
+// 由 ./versions.py sync 同步到 gradle.properties 的 automap.version.*（按 artifact 独立，支持单模块升版）
 fun skyVersionOf(artifact: String): String =
     providers.gradleProperty("automap.version.$artifact").orNull
         ?: throw GradleException(
-            "gradle.properties 缺少 automap.version.$artifact，请先执行 CarMapProject/sync-versions.py"
+            "gradle.properties 缺少 automap.version.$artifact，请先执行 CarMapProject/versions.py sync"
         )
 
 dependencies {

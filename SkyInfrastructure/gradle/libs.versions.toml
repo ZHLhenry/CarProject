@@ -31,7 +31,4 @@ skywidget = { module = "com.sky.lib:SkyWidget", version.ref = "skywidget" }
 skymultistatelayout = { module = "com.sky.lib:SkyMultiStateLayout", version.ref = "skymultistatelayout" }
 
 [plugins]
-sky-android-application = { id = "sky.android.application", version.ref = "buildLogic" }
-sky-android-application-flavors = { id = "sky.android.application.flavors", version.ref = "buildLogic" }
-sky-android-library = { id = "sky.android.library", version.ref = "buildLogic" }
 sky-android-library-common = { id = "sky.android.library.common", version.ref = "buildLogic" }

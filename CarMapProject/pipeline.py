@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CarMapProject 下几个脚本共用的配置读取（build-all / sync-versions / bump-version）。
+"""CarMapProject 下脚本共用的配置读取（build-all.py / versions.py）。
 
 数据来源只有两份 JSON，脚本里不再各自解析、也不再硬编码工程名：
   app-builds.json  渠道 + 车型 + 默认渠道（壳工程构建时也是唯一来源）
@@ -14,9 +14,6 @@ ROOT = Path(__file__).resolve().parent          # CarMapProject/
 BASE = ROOT.parent                              # carProject/，库工程在上一级
 CHANNELS_FILE = ROOT / "app-builds.json"
 PROJECTS_FILE = ROOT / "projects.json"
-
-# 壳工程自己：sync-versions 要同步它，但它不 publish（只 assemble）
-SELF = "CarMapProject"
 
 
 def read_json(path: Path) -> dict:

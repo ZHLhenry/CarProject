@@ -38,12 +38,12 @@
 
 `build-all.py` 的发布顺序来自 `projects.json` 的 `publishOrder`（基建层 → 地图适配层 → 业务组件层 → HMI 契约），
 HMI 车型工程由 `app-builds.json` 的 `carModels` 自动追加（`h6` → `HmiH6Project`，artifact `hmi-h6`），
-所以**新增车型不用改本文件**。`sync-versions.py` 的同步目标、`bump-version.py` 的「这个 artifact 属于哪个工程」
+所以**新增车型不用改本文件**。`versions.py sync` 的同步目标、`versions.py bump` 的「这个 artifact 属于哪个工程」
 也都从这两份 JSON 推，脚本里没有工程名硬编码。
 
 ## 前置
 
-需先把上游 AAR 发布到本工程内的 `maven-repo/`：在本目录执行 `./build-all.py`（发布全部 AAR + 打默认渠道），或按 `README.md` 的顺序逐个 `./gradlew publish`。
+需先把上游 AAR 发布到本工程内的 `maven-repo/`：在本目录执行 `./build-all.py`（只发布 AAR；要顺带打 APK 加 `--assemble`），或按 `README.md` 的顺序逐个 `./gradlew publish`。
 
 `maven-repo/` 与 `versions.properties` 都在本工程目录里，所以**整个工程目录拷走后可独立编译**，不再依赖上一级的 6 个库工程。
 
@@ -58,8 +58,8 @@ hmi-h6=1.0.0
 ...
 ```
 
-- 谁在读：各库工程根 `build.gradle.kts` 用 `skyVersionOf(...)` 读自己 `gradle.properties` 的 `automap.version.*`（由本表的 `./sync-versions.py` 写进去，同步目标见 `projects.json`）；本工程 `app/build.gradle.kts` 同样读 `automap.version.*` 解析 `com.sky.automap:*`。
-- 怎么改：在本目录执行 `./bump-version.py map-sdk-amap-850 1.0.1`（等价于手改本文件），再 `publish` 对应工程。
+- 谁在读：各库工程根 `build.gradle.kts` 用 `skyVersionOf(...)` 读自己 `gradle.properties` 的 `automap.version.*`（由本表的 `./versions.py sync` 写进去，同步目标见 `projects.json`）；本工程 `app/build.gradle.kts` 同样读 `automap.version.*` 解析 `com.sky.automap:*`。
+- 怎么改：在本目录执行 `./versions.py bump map-sdk-amap-850 1.0.1`（等价于手改本文件），再 `publish` 对应工程。
 - 与 APK 版本无关：`versionName/versionCode` 只在 `build.gradle.kts` 的 `skyBuild.*` 声明。
 
 ## AAR 产物（`maven-repo/`）

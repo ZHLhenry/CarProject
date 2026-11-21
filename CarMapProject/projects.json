@@ -1,6 +1,6 @@
 {
   "_comment": [
-    "发布流水线清单 —— build-all.py / bump-version.py 的唯一来源。",
+    "发布流水线清单 —— build-all.py / versions.py 的唯一来源。",
     "",
     "publishOrder 只列「固定架构栈」：顺序即发布顺序（基建层 → 地图适配层 →",
     "业务组件层 → HMI 契约），下游从这里取上游 AAR。",
@@ -8,7 +8,7 @@
     "HMI 车型工程**不写在这里**：由 app-builds.json 的 carModels 自动追加",
     "（h6 → HmiH6Project，hmi-h6），所以新增车型不用改本文件。",
     "",
-    "artifacts 是该工程发布的 Maven 坐标，bump-version.py 用它回答",
+    "artifacts 是该工程发布的 Maven 坐标，versions.py 用它回答",
     "「这个 artifact 属于哪个工程、该 publish 谁」。新增 AAR 时在这里补一条。",
     "",
     "壳工程 CarMapProject 自己不在列表里：它只被打包（assemble），不 publish。"
