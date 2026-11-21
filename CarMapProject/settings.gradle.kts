@@ -17,9 +17,17 @@ pluginManagement {
         }
         // SkyBuildLogic（convention 插件）私有仓库
         maven {
-            credentials {
-                username = "677b4e5b259532263f6b30a6"
-                password = "RnVrdxoghjKo"
+            // 凭据从 local.properties 读（该文件不入库）；未配置则匿名访问
+            val skyProps = java.util.Properties()
+            java.io.File(settingsDir, "local.properties").takeIf { it.isFile }
+                ?.inputStream()?.use { skyProps.load(it) }
+            val skyUser = skyProps.getProperty("skyRepo.username")
+            val skyPass = skyProps.getProperty("skyRepo.password")
+            if (skyUser != null && skyPass != null) {
+                credentials {
+                    username = skyUser
+                    password = skyPass
+                }
             }
             url = uri("https://packages.aliyun.com/6732fc8f356ccaf8531a1487/maven/skybuildlogic")
             content {
@@ -58,9 +66,17 @@ dependencyResolutionManagement {
         // Sky 系列库（SkyMVVM / SkyWidget / SkyMultiStateLayout）私有仓库
         fun aliyunMaven(repoUrl: String) {
             maven {
-                credentials {
-                    username = "677b4e5b259532263f6b30a6"
-                    password = "RnVrdxoghjKo"
+                // 凭据从 local.properties 读（该文件不入库）；未配置则匿名访问
+                val skyProps = java.util.Properties()
+                java.io.File(settingsDir, "local.properties").takeIf { it.isFile }
+                    ?.inputStream()?.use { skyProps.load(it) }
+                val skyUser = skyProps.getProperty("skyRepo.username")
+                val skyPass = skyProps.getProperty("skyRepo.password")
+                if (skyUser != null && skyPass != null) {
+                    credentials {
+                        username = skyUser
+                        password = skyPass
+                    }
                 }
                 url = uri(repoUrl)
             }

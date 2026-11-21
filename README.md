@@ -328,6 +328,11 @@ cd ../CarMapProject && ./gradlew :app:assembleDefault   # 打默认渠道即可�
 ```properties
 # 所有工程
 sdk.dir=/Users/xxx/Library/Android/sdk
+
+# 所有工程：私有 Maven 仓库（阿里云云效）凭据，由 settings.gradle.kts 读取。
+# 不配置时按匿名访问，公开依赖仍可解析；缺这两行时若构建早期就拉私有插件/库会报 401。
+skyRepo.username=<你的云效账号>
+skyRepo.password=<你的云效密码>
 ```
 
 ```properties
@@ -340,7 +345,9 @@ app.release.storePassword=***
 app.release.keyAlias=SkyBuildLogic
 ```
 
-`CarMapProject/SkyBuildLogic.jks` 已随工程放置，可直接用于 demo 签名。
+签名库 `CarMapProject/SkyBuildLogic.jks` **不入库**（`.gitignore` 里的 `*.jks` / `*.keystore`），
+需要签名时自备 keystore 放到该位置，或在 `local.properties` 里把 `storeFile` 指向你自己的文件。
+凭据同理：仓库地址写在 `settings.gradle.kts` 里，**账号密码只从 `local.properties` 读**，不要改回硬编码。
 
 ## 十、两个说明
 
