@@ -7,20 +7,23 @@ lib/carProject/
 ├── SkyInfrastructure/      基建层        → infrastructure.aar
 ├── SkyMapAdapter/          地图适配层    → 7 个模块：接口+门面 / 厂商实现（含版本链）/ 一版一份 SDK
 ├── SkyBusinessComponent/   业务组件层    → business（一个 AAR，内含 poi / navigation / route 三个包）
-├── SkyHmiApi/              HMI 契约层    → hmi-api
+├── SkyHmiApi/              契约层        → hmi-api（车型插件契约）+ car-api（对外 AIDL 契约）
 ├── HmiH6Project/           H6 车型 HMI   → hmi-h6
 ├── HmiH9Project/           H9 车型 HMI   → hmi-h9
 ├── CarMapProject/          壳工程        → 按渠道出 APK：CarMap_h6_E245_FRONT_1920x720_amap850 / CarMap_h9_..._baiduMapV22
 │   ├── maven-repo/         本地 Maven 仓库（6 个上游工程 publish 的产物，编译期依赖源）
-│   ├── versions.properties ★ AAR 版本表：12 个 artifact 各一行，全仓库唯一来源
+│   ├── versions.properties ★ AAR 版本表：13 个 artifact 各一行，全仓库唯一来源
 │   ├── app-builds.json    ★ 渠道表：APP_BUILD_ID → 车型/芯片/产品/屏型/分辨率/地图厂商与版本
 │   ├── build-all.py        一键按序发布 AAR（--assemble 才顺带打 APK）
 │   ├── versions.py         版本表维护脚本：list 查看 / bump 升版（只改 versions.properties，无同步步骤）
 │   ├── projects.json      ★ 发布流水线清单：固定架构栈顺序 + artifact → 工程
 │   ├── pipeline.py         上面几个 py 脚本共用的配置读取（不硬编码工程名）
 │   └── （无脚本插件：版本号由各工程 build.gradle.kts 直接读 versions.properties）
-└── （脚本全部收在 CarMapProject/ 里，根目录只有 7 个工程 + README）
+└── CarClientDemo/          AIDL 调用演示（**不属于架构栈**：模拟外部应用，只依赖 car-api 的 AAR）
 ```
+
+> 脚本全部收在 `CarMapProject/` 里。`CarClientDemo` 是第八个工程，但它扮演「第三方应用」，
+> 不参与 `build-all.py` 发布流水线，也不依赖任何库工程的源码。
 
 ## 一、工程职责与依赖关系
 
@@ -29,7 +32,7 @@ lib/carProject/
 | `SkyInfrastructure` | Infrastructure 基建层：SkyMVVM / SkyWidget / SkyMultiStateLayout 的统一出口、多状态布局约定 | `infrastructure` | 无（红线：不依赖任何地图、业务、HMI） |
 | `SkyMapAdapter` | SkyMapAdapter 地图适配：契约 + 门面（同一个 AAR 两个包）+ 厂商实现层（含 SDK 版本绑定**链**，版本用包区分）+ 一版一份影子 SDK | `map-api`、`map-impl-amap`、`map-impl-baidu`、`map-sdk-amap-850/-910`、`map-sdk-baidu-v21/-v22`（共 7 个） | 无（本工程内部依赖） |
 | `SkyBusinessComponent` | SkyBusinessComponent 业务组件：POI / 导航 / 路线（**一个 AAR，内部按业务分包**） | `business` | `infrastructure`、`map-api` |
-| `SkyHmiApi` | HMI 契约（车型 HMI 与壳工程之间的唯一约定） | `hmi-api` | 无 |
+| `SkyHmiApi` | 契约层，两个模块两种受众：`hmi-api` = 车型 HMI 与壳工程之间的约定（同进程、编译期二选一）；`car-api` = **对外 AIDL 契约**（跨进程、给第三方应用、要求二进制兼容） | `hmi-api`、`car-api` | 无 |
 | `HmiH6Project` | H6 车型 HMI 独立工程（UI 视觉 + 车型交互） | `hmi-h6` | `hmi-api`、`infrastructure`、`business` |
 | `HmiH9Project` | H9 车型 HMI 独立工程 | `hmi-h9` | 同上（与 H6 工程零依赖） |
 | `CarMapProject` | 壳工程：只做组装与打包，不含业务代码 | APK（`com.sky.automap.h6` / `.h9`） | 以上全部；厂商与 SDK 版本按 `app-builds.json` 的渠道表逐渠道注入 |
@@ -104,7 +107,7 @@ cd ../CarMapProject     && ./gradlew assembleDebug # 壳工程出包
 ### AAR 产物在哪
 
 `publish` 的产物在 `CarMapProject/maven-repo/com/sky/automap/<模块>/<版本>/` 下（`<模块>-<版本>.aar` + POM + module 元数据 + 校验和）。
-要给外部递 aar，直接从这些目录里取那 12 个 `.aar` 即可——没有额外的「平铺导出」目录，避免同一批产物存两份。
+要给外部递 aar，直接从这些目录里取那 13 个 `.aar` 即可——没有额外的「平铺导出」目录，避免同一批产物存两份。
 
 产物（文件名里带渠道 ID，拿到包不用解压就知道装的是哪个渠道）：
 
@@ -289,8 +292,8 @@ binding.v910.Amap910Binding   只写改动：隐私合规、构造参数、同�
 
 | | 应用版本 | AAR 版本 |
 |---|---|---|
-| 声明位置 | `CarMapProject/build.gradle.kts` 的 `skyBuild.versionCode/versionName` | `CarMapProject/versions.properties`（12 个 artifact 各一行，唯一来源） |
-| 当前值 | `100` / `1.0.0` | 12 个 artifact 均为 `1.0.0` |
+| 声明位置 | `CarMapProject/build.gradle.kts` 的 `skyBuild.versionCode/versionName` | `CarMapProject/versions.properties`（13 个 artifact 各一行，唯一来源） |
+| 当前值 | `100` / `1.0.0` | 13 个 artifact 均为 `1.0.0`（`car-api` 的接口能力版本另算，看 `CarApi.API_VERSION`） |
 | 作用 | 写进 APK 的 `AndroidManifest`（`aapt2 dump badging` 可见），车机/用户看到的版本 | Maven 坐标 `com.sky.automap:<artifact>:<表里那一行>`，只决定壳工程解析到哪份 AAR |
 | 生效方式 | 重新打包 | `publish` 对应工程；壳工程下次构建即按新版本解析 |
 | 一键修改 | 无（手工改两行） | `./CarMapProject/versions.py bump <artifact> <版本>` 单个 / `--all <版本>` 全部 |
@@ -312,7 +315,7 @@ APK 仍是 `versionCode=100 versionName=1.0.0`。因此这些库里不再声明�
 `CarMapProject/versions.properties` 按 artifact 逐行记版本，所以可以只升一个：
 
 ```bash
-./CarMapProject/versions.py bump map-sdk-amap-850 1.0.1   # 只改这一行，其余 12 个仍是 1.0.0
+./CarMapProject/versions.py bump map-sdk-amap-850 1.0.1   # 只改这一行，其余 13 个仍是 1.0.0
 cd SkyMapAdapter && ./gradlew :map-sdk-amap-850:publish
 cd ../CarMapProject && ./gradlew :app:assembleDefault   # 打默认渠道即可看到新 AAR
 ```
@@ -361,3 +364,66 @@ app.release.keyAlias=SkyBuildLogic
 
 1. **地图 SDK 二进制未内置**：`map-sdk-amap-850/-910`、`map-sdk-baidu-v21/-v22` 是「影子 SDK」，一个模块对应一份真实 aar 的包名、类名与调用形状（最新版模块额外保留历史成员，作为 `map-impl-*` 的编译基线，并带 `@ApiSince` / `@ApiRemoved` 标注）。真实接入时这 4 个模块整体替换为官方坐标、壳工程注入唯一一份真实 aar，**厂商层与业务层零改动**（只需删掉 `AmapBindingFactory.of()` 里那行 `AmapSdk.mode = ...`）。
 2. **`CarMapProject/maven-repo/` 不入库**：它是各工程 `publish` 的产物目录，随时可由 `./CarMapProject/build-all.py` 重新生成；若 CI 上用私服，只需把各工程根 `build.gradle.kts` 里的 `repositories` 地址换成私服并补 `credentials`。
+
+## 十一、对外提供 AIDL（`car-api`）
+
+外部应用要通过 AIDL 调用车机应用的能力时，**契约、实现、声明分三处**，不要合并：
+
+| 层 | 位置 | 内容 |
+|---|---|---|
+| 契约 | `SkyHmiApi/car-api`（`com.sky.automap:car-api`） | 只有 `.aidl` + Parcelable 数据契约 + 常量，零业务依赖，是递交给外部方的唯一 AAR |
+| 实现 | `CarMapProject/service`（`:service` 模块） | `RemoteCarService`（Stub 实现 + 调用方鉴权）、`RemoteCarBridge`（回调登记 / 就绪广播 / 身份兜底）、`CarServiceEnv`（注入载体）；DTO ↔ domain 转换只发生在这里 |
+| 声明 | `:app` 的 manifest（由 `:service` 合并） | `<service android:exported="true">` + 自定义 `signature\|privileged` 权限 |
+
+为什么不放进 `hmi-api`：它是「车型 HMI 插件」契约（同进程、编译期二选一），而 AIDL 是跨进程、要对第三方承诺二进制兼容的接口，两者稳定性等级与发布节奏不同；混在一起相当于把 `HmiEntry` 也暴露给外部。
+
+### 现状
+
+已完成并验证：
+
+- `car-api` 契约 AAR：发布为 `com.sky.automap:car-api:1.0.0`，内含 API 2 的全部方法。**Maven 版本与接口能力版本解耦**：接口有无某方法看 `CarApi.API_VERSION`，不看 Maven 版本（坐标只是发布标签）。
+  - API 1：`getApiVersion` / `getIdentity` / 回调注册注销
+  - API 2（追加在末尾）：`searchPoi` / `planRoute` / `navigateTo` / `stopNavigation` / `getNavState`
+  - 数据契约：`CarIdentity` / `CarPoi` / `CarLatLng` / `CarNavState`（全部手写 Parcelable，字段只追加）
+- `:service` 服务端：Stub 实现 + `<service>` 声明（合并进 `:app`）；`:app` 在 `CarMapApplication.onCreate` **末尾**注入 `CarServiceEnv`（放在地图实现 `install` 之后，否则外部收到 `onServiceReady` 时业务还没装好）。
+  - `searchPoi` / `planRoute` 转调 `MapManager.provider()`，DTO ↔ 领域模型的转换集中在 `CarDtoMapper.kt`；
+  - `navigateTo` / `stopNavigation` 目前是**模拟态**（`map-api` 还没有导航能力），状态放在 `NavStateHolder`，变化时通过 `onNavStateChanged` 推送；接真实导航只需替换该类的 start/stop，契约与外部调用方都不用动。
+- 端到端验证：`:app:assembleDefault` 与 `:app:assembleDefaultRelease` 均通过；`aapt2 dump xmltree` 可见 `<service android:exported="true" android:permission="com.sky.automap.permission.BIND_CAR_SERVICE">`、`protectionLevel=0x12`（signature|privileged）、action 与 `CarApi.ACTION_SERVICE` 一致；dex 内含 `RemoteCarService` 与 `IRemoteCarService`。
+- `CarClientDemo` 调用演示：第 8 个独立工程（标准 AGP，不用 SkyBuildLogic），只依赖 `car-api` 的 AAR；演示 action 查询、`<queries>` 包可见性、签名权限、`onServiceReady` 语义、binder 死亡监听。构建通过，`aapt2` 确认清单含 `queries` 与绑定权限，dex 含契约类。
+
+未做（下一步）：
+
+- **业务能力仍是示例级**：`navigateTo` 是模拟态；`searchPoi` / `planRoute` 是**同步**直调 `MapManager.provider()`，真实厂商 SDK 多为异步，且需要限流与分页（Binder 单次事务 1MB）。对外承诺前要按产品需求定最终能力集，把重活挪到主线程 + 回调。
+- **回调接口的演进代价**：给 `IRemoteCarCallback` 追加方法后，旧客户端 APK 仍能运行（收不到新回调），但用新 AAR 重新编译旧源码会失败 —— `Stub` 多了抽象方法。所以回调接口应尽早定型，或按需新建独立回调接口，不要长期往里塞方法。
+- **真机联调**：`CarClientDemo` 已能构建，但当前环境没有连接设备，`bindService` 的成功路径未实跑过。
+- **R8 验证**：本工程 Release 未开 `minifyEnabled`，`consumer-rules.pro` 只是随 AAR 下发，尚未在真实混淆下验证过绑定。
+- **进程隔离**：现为同进程。要拆 `android:process=":car"`，必须先把 `CarMapApplication` 按进程名分支初始化，见下方说明。
+
+### 构建注意
+
+- **`buildFeatures { aidl = true }` 必须显式写**：AGP 8 起默认关闭，漏了不会报编译错，只是 AAR 里没有 `Stub`，外部调用方 `asInterface` 时才 `NoClassDefFoundError`。已验证模块级写法能覆盖 convention 插件。
+- `car-api/consumer-rules.pro` 会以 `proguard.txt` 打进 AAR，调用方开启混淆后仍能正常绑定。
+- 校验产物：`unzip -l car-api-release.aar`（应含 `classes.jar`、`proguard.txt`）；`unzip -l classes.jar | grep Stub` 应看到 `IRemoteCarService$Stub`。
+
+### 兼容规则（一旦发布即对第三方生效）
+
+1. 方法只能**追加在接口末尾**——AIDL 按声明顺序分配 transaction code，插在中间会让旧客户端参数错位；
+2. 不删方法、不改参数类型与顺序；
+3. Parcelable 字段只追加，不改顺序（`CarIdentity` 手写 `writeToParcel` 就是为了让这条规则在代码里显式可见）；
+4. 业务失败用返回码表达，不用异常；`RemoteException` 只代表链路断了；
+5. 回调接口必须 `oneway`，否则客户端一卡就反压服务端的 Binder 线程池；
+6. 能力协商用 `getApiVersion()`，不要依赖 `getInterfaceVersion()`（那是 stable AIDL / HAL 的机制）。标准写法见 `CarClientDemo.ensureApiLevel()`：调用前判断，版本不够就降级，而不是硬调之后收一句无指向性的 `Transaction failed`。
+7. `CarApi.API_VERSION` 是 `const val`，会被**内联**进 `:service` 的字节码——升版后必须重新编译/打包，否则 `getApiVersion()` 返回的仍是旧值。当前 `:service` 是 `:app` 的库模块，重打 APK 必然重编，暂时踩不到；若将来它独立发布 AAR，这条就是必检项。
+
+### 外部方绑定（两个必须避开的坑）
+
+- **不要用包名 `setPackage()`**：`applicationId` 按车型覆盖为 `com.sky.automap.h6` / `.h9`，且两个包可同时安装。正确做法是用 `CarApi.ACTION_SERVICE` 做 `queryIntentServices`，再用返回的组件名 bind；命中多个时用 `getIdentity()` 的 `carModel` / `channelId` 区分。
+- Android 11+ 需在外部方 manifest 声明可见性，否则查不到 service：
+
+```xml
+<queries>
+    <intent><action android:name="com.sky.automap.car.IRemoteCarService" /></intent>
+</queries>
+```
+
+- 绑定前需持有 `com.sky.automap.permission.BIND_CAR_SERVICE`；签名不一致的第三方拿不到 `signature` 级权限，只能降级为运行时签名白名单校验（`getCallingUid()` → `getPackagesForUid()` → 比对签名 SHA-256）。

@@ -1,0 +1,24 @@
+[versions]
+# 与 SkyBuildLogic 内置的版本保持一致，避免同一台机器上缓存两套 AGP
+agp = "9.5.0"
+
+# ---------------------------------------------------------------------------
+# 契约 AAR 版本：**写死**。
+# 外部方就是这样用 Maven 坐标的——不会去读对方的 versions.properties。
+# CarMap 侧升版后，这里也要手动改（这正是外部方需要感知的「升级动作」）。
+#
+# 1.0.0 已含 API 2：searchPoi / planRoute / navigateTo / stopNavigation / getNavState
+#                  + CarPoi / CarLatLng / CarNavState + onNavStateChanged 回调
+#                  （Maven 版本与接口能力版本解耦：看 CarApi.API_VERSION，不看 Maven 版本）
+# ---------------------------------------------------------------------------
+carApi = "1.0.0"
+
+compileSdk = "37"
+minSdk = "24"
+targetSdk = "35"
+
+[libraries]
+car-api = { module = "com.sky.automap:car-api", version.ref = "carApi" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }

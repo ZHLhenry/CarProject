@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  对外 AIDL 服务端声明 —— 本文件会合并进 :app 的 AndroidManifest。
+
+  为什么 service 声明放这里而不是 app 的 manifest：
+  「谁能 bind、怎么找到它」是契约的一部分，应该和 Stub 实现放在一起，
+  这样删除 :service 模块时，service 声明会一起消失，不会留下悬空配置
+  （声明了 service 但类不存在，运行期 bindService 静默失败，很难查）。
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      自定义绑定权限：signature 表示「与本应用同签名的 APK 自动获得」，
+      privileged 让车机系统预置应用（priv-app）无需额外授权即可使用。
+
+      注意：不同签名的第三方拿不到本权限。若要对这类合作方开放，
+      需把 protectionLevel 降级为 normal + 在 RemoteCarService 里做签名白名单校验，
+      而不是简单改成 normal（那等于对全车所有应用开放）。
+    -->
+    <permission
+        android:name="com.sky.automap.permission.BIND_CAR_SERVICE"
+        android:protectionLevel="signature|privileged" />
+
+    <application>
+
+        <!--
+          用全限定类名而不是 .RemoteCarService：库模块的 manifest 没有 package 属性，
+          相对类名依赖 namespace 推导，显式写全名不会因为改名/挪包而静默失效。
+        -->
+        <service
+            android:name="com.sky.automap.car.service.RemoteCarService"
+            android:exported="true"
+            android:permission="com.sky.automap.permission.BIND_CAR_SERVICE">
+
+            <!-- action 必须与 CarApi.ACTION_SERVICE 完全一致：外部方靠它 queryIntentServices -->
+            <intent-filter>
+                <action android:name="com.sky.automap.car.IRemoteCarService" />
+            </intent-filter>
+        </service>
+
+    </application>
+
+</manifest>

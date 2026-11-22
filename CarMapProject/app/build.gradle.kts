@@ -300,6 +300,11 @@ dependencies {
     // HMI 契约 AAR
     implementation("com.sky.automap:hmi-api:${skyVersionOf("hmi-api")}")
 
+    // 对外 AIDL 服务端（Stub 实现 + <service> 声明，manifest 由它合并进来）
+    // 用 project 而不是 AAR：它只服务本工程，没有独立发布的意义；
+    // 它自己 implementation 引入 car-api，所以这里不需要再声明 car-api 版本。
+    implementation(project(":service"))
+
     // 地图契约 + 门面 AAR（接口/数据模型 + MapManager；具体实现由各 Flavor 注入）
     implementation("com.sky.automap:map-api:${skyVersionOf("map-api")}")
 

@@ -90,3 +90,6 @@ dependencyResolutionManagement {
 rootProject.name = "CarMapProject"
 
 include(":app")
+
+// 对外 AIDL 契约的服务端实现（Stub + service 声明），只被 :app 依赖，不发布
+include(":service")

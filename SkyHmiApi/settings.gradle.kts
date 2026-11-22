@@ -87,4 +87,8 @@ dependencyResolutionManagement {
 
 rootProject.name = "SkyHmiApi"
 
+// hmi-api：对内「车型 HMI 插件」契约（同进程、编译期二选一）
+// car-api：对外「跨进程 AIDL」契约（给第三方应用，要求二进制兼容）
+// 两者都是纯契约 AAR，但稳定性等级与发布节奏不同，所以分模块、分 artifactId。
 include(":hmi-api")
+include(":car-api")

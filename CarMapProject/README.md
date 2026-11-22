@@ -2,6 +2,13 @@
 
 只负责**组装与打包**，不含任何业务代码（独立 Gradle 工程，可单独打开）。
 
+两个模块：
+
+- `:app` —— application 模块，只做组装：按 `app-builds.json` 逐渠道注入 AAR 与 BuildConfig，不写业务逻辑。
+- `:service` —— library 模块（**不发布**，只是 `:app` 的一部分），对外 AIDL 契约的服务端实现：
+  `RemoteCarService`（Stub + 鉴权）、`RemoteCarBridge`（回调登记 / 就绪广播），以及合并进 `:app` 的 `<service>` 声明。
+  它属于 RPC 适配层而非业务层，真正的业务能力仍来自 `map-api` / `business`。
+
 ## 产物
 
 一个渠道一个 APK，文件名带渠道 ID（键名见 `app-builds.json`）：
@@ -49,7 +56,7 @@ HMI 车型工程由 `app-builds.json` 的 `carModels` 自动追加（`h6` → `H
 
 ## AAR 版本表（`versions.properties`）
 
-全仓库唯一版本来源，12 个 artifact 各一行：
+全仓库唯一版本来源，13 个 artifact 各一行：
 
 ```properties
 infrastructure=1.0.0
@@ -67,7 +74,8 @@ hmi-h6=1.0.0
 全仓库只有这一处 AAR 产物，既是编译期的依赖源，也是需要递 aar 时取文件的地方：
 
 - 结构：`maven-repo/com/sky/automap/<模块>/<版本>/<模块>-<版本>.aar`（同目录还有 POM、module 元数据、sha1）。
-- 12 个模块：`infrastructure`、`map-api`（契约 + 门面）、`map-impl-amap`、`map-impl-baidu`、`map-sdk-amap-850/-910`、`map-sdk-baidu-v21/-v22`、`business`、`hmi-api`、`hmi-h6`、`hmi-h9`。
+- 13 个模块：`infrastructure`、`map-api`（契约 + 门面）、`map-impl-amap`、`map-impl-baidu`、`map-sdk-amap-850/-910`、`map-sdk-baidu-v21/-v22`、`business`、`hmi-api`、`car-api`（对外 AIDL 契约）、`hmi-h6`、`hmi-h9`。
+- `car-api` 是唯一**给外部应用**用的 AAR：只含 AIDL 接口、Parcelable 数据契约与常量，不含实现。需要递交给外部方时，取 `maven-repo/com/sky/automap/car-api/<版本>/car-api-<版本>.aar` 即可，调用方无需 `.aidl` 源文件（Stub/Proxy 已编进 AAR）。
 - 不入库，由 `./build-all.py` 重建；要单独刷新某个工程：在该工程下 `./gradlew publish`。
 - 不参与打包的判定：APK 里打什么由 `app-builds.json` 的 `carModels` / `builds` 决定（`app/build.gradle.kts` 逐渠道生成依赖），与目录结构无关。
 

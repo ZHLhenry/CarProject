@@ -19,3 +19,5 @@ xlog = { module = "com.elvishew:xlog", version.ref = "xlog" }
 [plugins]
 sky-android-application = { id = "sky.android.application", version.ref = "buildLogic" }
 sky-android-application-flavors = { id = "sky.android.application.flavors", version.ref = "buildLogic" }
+# 壳工程里的库模块（:service）用，与其它 6 个库工程同一个 convention 插件
+sky-android-library-common = { id = "sky.android.library.common", version.ref = "buildLogic" }
