@@ -87,11 +87,10 @@ dependencyResolutionManagement {
 
 rootProject.name = "SkyMapAdapter"
 
-// 契约层：厂商与版本都无关
+// 契约 + 门面：厂商与版本都无关。
+// 一个模块两个包：`map.api` 是纯契约（零可变状态），`map.factory` 是注入/取用门面。
+// 不再单独拆 map-factory：业务组件与壳工程本来就要依赖 map-api 拿数据模型。
 include(":map-api")
-
-// 门面：注入、取用、能力查询
-include(":map-factory")
 
 // 厂商实现层：厂商公共逻辑 + 该厂商的**全部版本适配**。
 // 版本差异用包区分（binding.v850 / v910、binding.v21 / v22），不拆模块：

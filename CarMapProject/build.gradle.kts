@@ -9,9 +9,9 @@
 // 构建：./gradlew :app:assembleDefault（默认渠道）/ ./gradlew assembleDebug（全部渠道）
 // ============================================================================
 
-// AAR 版本表：唯一来源是 versions.properties，由 ./versions.py sync 同步到各工程
-// gradle.properties 的 automap.version.* 键；:app 模块直接读这些属性（见 app/build.gradle.kts），
-// 这里不再中转任何中间变量 —— 根脚本里的顶层语句越少，IDE 的脚本分析越不会出错。
+// AAR 版本表：唯一来源是本工程根目录的 versions.properties，各工程构建时直接读它
+// （见各工程 skyVersionOf）；这里不中转任何中间变量 —— 根脚本里的顶层语句越少，
+// IDE 的脚本分析越不会出错。
 // SkyBuild 全局共享配置（applicationId 为壳工程基准包名，具体车型由 :app 的 Flavor 覆盖）
 extra["skyBuild.appName"] = "CarMap"
 extra["skyBuild.applicationId"] = "com.sky.automap"

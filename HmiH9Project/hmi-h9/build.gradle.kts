@@ -10,13 +10,19 @@ android {
     }
 }
 
-// 跨工程依赖版本：唯一来源是 CarMapProject/versions.properties，
-// 由 ./versions.py sync 同步到 gradle.properties 的 automap.version.*（按 artifact 独立，支持单模块升版）
-fun skyVersionOf(artifact: String): String =
-    providers.gradleProperty("automap.version.$artifact").orNull
-        ?: throw GradleException(
-            "gradle.properties 缺少 automap.version.$artifact，请先执行 CarMapProject/versions.py sync"
-        )
+// 跨工程依赖版本：唯一来源是 CarMapProject/versions.properties（全仓库只此一份），这里直接读它。
+fun skyVersionOf(artifact: String): String {
+    // 版本表是纯文本，直接按行读（不用 java.util.Properties：kts 里 `java` 会被
+    // JavaPluginExtension 遮蔽）；注释与空行跳过
+    val key = "$artifact="
+    return rootProject.file("../CarMapProject/versions.properties")
+        .takeIf { it.isFile }
+        ?.readLines()
+        ?.firstOrNull { it.trim().startsWith(key) }
+        ?.substringAfter("=")?.trim()
+        ?.takeIf { it.isNotEmpty() }
+        ?: throw GradleException("CarMapProject/versions.properties 里没有 $artifact 这一行")
+}
 
 dependencies {
     // HMI 契约（HmiH9Entry 实现 HmiEntry，属于公开签名，必须 api）

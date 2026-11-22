@@ -4,12 +4,13 @@ import android.content.Context
 import android.view.View
 
 /**
- * 地图能力统一接口（接口层 / 标准 SDK）。
+ * 地图能力统一接口（契约包 `com.sky.automap.map.api`）。
  *
  * 约束：
- * - 业务组件层（poi / navigation / route）只能依赖本接口层与 `map-factory` 门面，
+ * - 业务组件层（poi / navigation / route）只依赖 map-api（本包 + 门面包），
  *   严禁直接依赖 impl-amap / impl-baidu；
- * - 本模块只放接口与数据模型，不含任何可变状态（实现注册表在 map-factory 内部）；
+ * - 本包只放接口与数据模型，**不含任何可变状态**；注入与取用门面在同一个 AAR 的
+ *   `com.sky.automap.map.factory` 包（[com.sky.automap.map.factory.MapManager]）；
  * - 具体实现在打包阶段由壳工程注入。
  */
 interface IMapProvider {

@@ -3,14 +3,14 @@ package com.sky.automap.map.factory
 import com.sky.automap.map.api.IMapProvider
 
 /**
- * 地图实现注册表（map-factory 内部实现，`internal` 不对外暴露）。
+ * 地图实现注册表（map-api 内部实现，`internal` 不对外暴露）。
  *
- * 只在 factory 内部的 [MapManager] 中使用：
+ * 只在 `map.factory` 包内的 [MapManager] 中使用：
  * - 壳工程通过 [MapManager.install] 写入实现；
  * - 业务组件通过 [MapManager] 的语义化方法取用能力。
  *
- * 因为不导出到 `map-api` 契约层，接口层保持「零可变状态」，
- * 未来要换成 Hilt / ServiceLoader 注入时，只改本文件与 [MapManager]，`map-api` 二进制不变。
+ * 可变状态只允许出现在本包：`com.sky.automap.map.api` 包保持「零可变状态」的纯契约，
+ * 未来要换成 Hilt / ServiceLoader 注入时，只改本文件与 [MapManager]，契约包二进制不变。
  */
 internal object MapProviderRegistry {
 

@@ -12,7 +12,7 @@ import org.gradle.api.publish.maven.MavenPublication
 // 拆开只会让下游多引坐标、多出「少引一个就运行期崩」的机会。
 //
 // 每个业务包自带 Fragment + 子导航图，由 HMI 工程 include 组合；
-// 只允许依赖 infrastructure / map-api / map-factory（严禁依赖具体地图实现）。
+// 只允许依赖 infrastructure / map-api（契约 + 门面），严禁依赖具体地图实现。
 // 构建：./gradlew publish
 // ============================================================================
 
@@ -34,14 +34,20 @@ extra["skyBuild.enableCompose"] = false
 
 // ============================ AAR 发布约定 ====================================
 val automapGroup = "com.sky.automap"
-// AAR 版本表：唯一来源是 CarMapProject/versions.properties，由 ./versions.py sync 同步到
-// 本工程 gradle.properties 的 automap.version.* 键。这里直接读 Gradle 属性，不碰 extra、
-// 不引脚本插件 —— IDE 对顶层语句的脚本分析不可靠，写得越少越不会红。
-fun skyVersionOf(artifact: String): String =
-    providers.gradleProperty("automap.version.$artifact").orNull
-        ?: throw GradleException(
-            "gradle.properties 缺少 automap.version.$artifact，请先执行 CarMapProject/versions.py sync"
-        )
+// AAR 版本表：唯一来源是 CarMapProject/versions.properties（全仓库只此一份）。
+// 这里直接读该文件，不生成副本、不引脚本插件，IDE 不会红。
+fun skyVersionOf(artifact: String): String {
+    // 版本表是纯文本，直接按行读（不用 java.util.Properties：kts 里 `java` 会被
+    // JavaPluginExtension 遮蔽）；注释与空行跳过
+    val key = "$artifact="
+    return rootProject.file("../CarMapProject/versions.properties")
+        .takeIf { it.isFile }
+        ?.readLines()
+        ?.firstOrNull { it.trim().startsWith(key) }
+        ?.substringAfter("=")?.trim()
+        ?.takeIf { it.isNotEmpty() }
+        ?: throw GradleException("CarMapProject/versions.properties 里没有 $artifact 这一行")
+}
 
 subprojects {
     // 统一坐标：同工程内的 project 依赖在 POM 中同样映射为 com.sky.automap:<模块名>

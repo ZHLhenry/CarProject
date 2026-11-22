@@ -99,9 +99,6 @@ def main() -> int:
     print(f"发布顺序：{' → '.join(pipeline.publish_order())}")
 
     try:
-        # 各工程读自己 gradle.properties 里的 automap.version.*，构建前先与版本表对齐
-        run("sync versions", [sys.executable, str(ROOT / "versions.py"), "sync"], ROOT)
-
         # 地图 SDK 继承链静态校验（CI 门禁，publish 之前必须先绿）
         run(
             "verify: SkyMapAdapter SDK 继承链",

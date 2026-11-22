@@ -9,16 +9,20 @@ import com.sky.automap.map.api.MapPoi
 import com.sky.automap.map.api.MapSdkType
 
 /**
- * 地图能力门面（factory.aar）：对上层提供统一的「取用入口」。
+ * 地图能力门面（map-api.aar 的 `map.factory` 包）：对上层提供统一的「取用入口」。
  *
- * 分层约定（严格分法）：
- * - `map-api`：只有接口与数据模型，**不含任何可变状态**；
- * - 本模块：注册表（internal）+ 本门面，负责「注入、取用、兜底」；
- * - 业务组件：只依赖本门面与 `map-api` 的数据模型，不直接读写注册表；
+ * 分层约定（同一个 AAR 内按包分）：
+ * - `com.sky.automap.map.api`：只有接口与数据模型，**不含任何可变状态**；
+ * - `com.sky.automap.map.factory`：注册表（`internal`）+ 本门面，负责「注入、取用、兜底」；
+ * - 业务组件：只依赖 map-api，不直接读写注册表；
  * - 壳工程：打包时 [install] 具体实现（H6 → 高德，H9 → 百度）。
  *
+ * 为什么不单独拆一个 map-factory 模块：门面只有两个文件、十几行构建脚本，而业务组件与
+ * 壳工程本来就要依赖 map-api 拿数据模型，拆开只多一个坐标、一次发布、一行版本表。
+ * 可变状态只许出现在本包，`map.api` 包保持「零可变状态」的纯契约。
+ *
  * 未来要加「多实例池 / SDK 初始化失败降级 / 切换耗时埋点」等策略，都在本类内部完成，
- * `map-api` 的二进制契约保持不变。
+ * `map.api` 包内的二进制契约保持不变。
  */
 object MapManager {
 

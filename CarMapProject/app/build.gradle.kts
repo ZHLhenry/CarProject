@@ -7,12 +7,19 @@ plugins {
 }
 
 // 依赖的其它独立工程发布版本（../CarMapProject/maven-repo 中的 com.sky.automap:*），
-// 版本来自 gradle.properties 的 automap.version.*（由 ./versions.py sync 从版本表同步）
-fun skyVersionOf(artifact: String): String =
-    providers.gradleProperty("automap.version.$artifact").orNull
-        ?: throw GradleException(
-            "gradle.properties 缺少 automap.version.$artifact，请先执行 CarMapProject/versions.py sync"
-        )
+// 版本来自本工程根目录的 versions.properties（全仓库唯一版本表）
+fun skyVersionOf(artifact: String): String {
+    // 版本表是纯文本，直接按行读（不用 java.util.Properties：kts 里 `java` 会被
+    // JavaPluginExtension 遮蔽）；注释与空行跳过
+    val key = "$artifact="
+    return rootProject.file("versions.properties")
+        .takeIf { it.isFile }
+        ?.readLines()
+        ?.firstOrNull { it.trim().startsWith(key) }
+        ?.substringAfter("=")?.trim()
+        ?.takeIf { it.isNotEmpty() }
+        ?: throw GradleException("CarMapProject/versions.properties 里没有 $artifact 这一行")
+}
 
 // ===========================================================================
 // 渠道（APP_BUILD_ID）
@@ -293,9 +300,8 @@ dependencies {
     // HMI 契约 AAR
     implementation("com.sky.automap:hmi-api:${skyVersionOf("hmi-api")}")
 
-    // 地图接口层 + 工厂 AAR（具体实现由各 Flavor 注入）
+    // 地图契约 + 门面 AAR（接口/数据模型 + MapManager；具体实现由各 Flavor 注入）
     implementation("com.sky.automap:map-api:${skyVersionOf("map-api")}")
-    implementation("com.sky.automap:map-factory:${skyVersionOf("map-factory")}")
 
     // 每个渠道各自：HMI 车型工程 + 地图厂商实现 + 唯一一份 SDK
     // - 车型     → hmi-<车型>（app-builds.json 的 carModels）

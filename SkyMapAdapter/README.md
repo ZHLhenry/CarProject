@@ -33,14 +33,16 @@ binding.v910.Amap910Binding        只写改动：隐私合规、构造参数、
 
 代价是「编译器不再按版本隔离 API」，用两道更轻的机制补上（见第五节）。
 
-## 二、产物（8 个模块，分四层）
+## 二、产物（7 个模块，分三层）
 
 | 层 | 模块 | 职责 |
 |---|---|---|
-| 契约层 | `map-api` | `IMapProvider`、`IMapView`、`MapCapabilities`、`LatLng` / `MapMarker` / `MapPoi`、`MapSdkType`。纯契约，无状态、无厂商 SDK |
-| 门面层 | `map-factory` | `MapManager`：注入、取用、`capabilities()`；注册表 `MapProviderRegistry` 为 `internal` |
+| 契约 + 门面层 | `map-api` | 一个 AAR 两个包：`map.api` 是纯契约（`IMapProvider`、`IMapView`、`MapCapabilities`、`LatLng` / `MapMarker` / `MapPoi`、`MapSdkType`，零可变状态）；`map.factory` 是门面（`MapManager` 注入 / 取用 / `capabilities()`，注册表 `MapProviderRegistry` 为 `internal`） |
 | 实现层 | `map-impl-amap` / `map-impl-baidu` | **厂商公共层 + 该厂商全部版本适配**。公共层不 import 任何厂商 SDK；版本适配在 `binding.v*` 包里 |
 | SDK 层 | `map-sdk-amap-850` / `-910`、`map-sdk-baidu-v21` / `-v22` | 影子 SDK，**一个模块 = 一份 aar 的 API 面**；最新版模块兼任编译基线 |
+
+> 门面没有单独成模块：它只有两个文件（`MapManager` + `MapProviderRegistry`），而业务组件与壳工程本来就要依赖 `map-api` 拿数据模型，拆开只多一个坐标、一次发布、一行版本表。
+> 代价是「契约层零可变状态」由包边界保证而非模块边界——`map.factory` 包是唯一允许持有可变状态的地方。
 
 `map-impl-amap` 内部的包就是分层：
 
@@ -59,10 +61,10 @@ com.sky.automap.map.impl.amap.binding.v910 ← 只写改动
 
 ```
 业务组件（business.aar：poi / navigation / route 三个包）
-        │ 只依赖 map-factory + map-api
-   MapManager（factory）
+        │ 只依赖 map-api（契约 + 门面，一个坐标）
+   MapManager（map-api 的 map.factory 包）
         │
-    map-api（纯契约，业务层只按 MapCapabilities 降级）
+    map.api 包（纯契约，业务层只按 MapCapabilities 降级）
         │
   map-impl-amap ──────────────────────────────────┐
         ├── 厂商公共层（版本无关）  ← AmapBinding SPI
@@ -205,7 +207,7 @@ appBuilds.values.forEach { build ->
 `map-impl-amap` 一个 AAR 装着 850/910 两段。打 850 的渠道（`*_amap850`）dex 里
 `Amap910Binding` 引用的 `AMapOptions` 是**悬空引用**（`*_amap910` 渠道反之，850 段的 `MapView(context)` 悬空）
 ——但它只在 `AmapBindingFactory.of(V910)` 分支执行时才会被解析，850 渠道永远走不到。这是「适配按包分版本」的必要代价：
-真按版本拆 AAR 就不会有悬空引用，代价是要再拆出 `map-binding-*` 一层（模块数 8 → 12）。
+真按版本拆 AAR 就不会有悬空引用，代价是要再拆出 `map-binding-*` 一层（模块数 7 → 11）。
 
 **3. 影子 SDK 之间有重复的桩代码**
 `map-sdk-amap-850` / `-910`、`map-sdk-baidu-v21` / `-v22` 各自维护一份 API 面，改桩要动多处。
@@ -230,7 +232,7 @@ appBuilds.values.forEach { build ->
    换成新基线；基线模块 `AmapSdk.ORDER` 加 `V920`；
 7. `./gradlew verifyMapSdkChain` 必须绿，然后 `./gradlew publish`；
 8. 壳工程：`app-builds.json` 的 `carModels.<车型>.mapVersions` 加 `"920"`、`versions.properties` 加
-   `map-sdk-amap-920`，然后 `./versions.py sync`；装配器不用改（版本走 `BuildConfig.APP_MAP_VERSION`）。
+   `map-sdk-amap-920`（各工程构建时直接读这份表，无需同步）；装配器不用改（版本走 `BuildConfig.APP_MAP_VERSION`）。
 
 厂商层、业务组件、HMI 工程**一行都不用改**。
 
@@ -238,7 +240,7 @@ appBuilds.values.forEach { build ->
 
 ```bash
 ./gradlew verifyMapSdkChain   # 静态检查继承链（CI 必跑）
-./gradlew publish             # 发布本工程全部 8 个模块的 AAR
+./gradlew publish             # 发布本工程全部 7 个模块的 AAR
 ```
 
 ## 十、前置

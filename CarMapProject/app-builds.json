@@ -29,7 +29,7 @@
     "",
     "新增车型（如 H10）：",
     "  1) carModels 加一段；",
-    "  2) versions.properties 加 hmi-h10 并执行 ./versions.py sync；",
+    "  2) versions.properties 加 hmi-h10（构建时直接读，无需同步）；",
     "  3) 新建 ../HmiH10Project 并 publish（build-all.py 会按 carModels 自动追加）",
     "  4) 建 app/src/h10/{java,res}：PlatformAssembler（同包同名）+ app_name",
     "构建脚本不用改。新增渠道：只在 builds 里加一条。",

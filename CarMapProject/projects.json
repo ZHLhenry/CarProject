@@ -22,7 +22,6 @@
       "project": "SkyMapAdapter",
       "artifacts": [
         "map-api",
-        "map-factory",
         "map-impl-amap",
         "map-impl-baidu",
         "map-sdk-amap-850",

@@ -38,7 +38,7 @@
 
 `build-all.py` 的发布顺序来自 `projects.json` 的 `publishOrder`（基建层 → 地图适配层 → 业务组件层 → HMI 契约），
 HMI 车型工程由 `app-builds.json` 的 `carModels` 自动追加（`h6` → `HmiH6Project`，artifact `hmi-h6`），
-所以**新增车型不用改本文件**。`versions.py sync` 的同步目标、`versions.py bump` 的「这个 artifact 属于哪个工程」
+所以**新增车型不用改本文件**。`versions.py bump` 的「这个 artifact 属于哪个工程」
 也都从这两份 JSON 推，脚本里没有工程名硬编码。
 
 ## 前置
@@ -49,7 +49,7 @@ HMI 车型工程由 `app-builds.json` 的 `carModels` 自动追加（`h6` → `H
 
 ## AAR 版本表（`versions.properties`）
 
-全仓库唯一版本来源，13 个 artifact 各一行：
+全仓库唯一版本来源，12 个 artifact 各一行：
 
 ```properties
 infrastructure=1.0.0
@@ -58,7 +58,7 @@ hmi-h6=1.0.0
 ...
 ```
 
-- 谁在读：各库工程根 `build.gradle.kts` 用 `skyVersionOf(...)` 读自己 `gradle.properties` 的 `automap.version.*`（由本表的 `./versions.py sync` 写进去，同步目标见 `projects.json`）；本工程 `app/build.gradle.kts` 同样读 `automap.version.*` 解析 `com.sky.automap:*`。
+- 谁在读：6 个库工程的 `skyVersionOf(...)` 与本工程 `app/build.gradle.kts` 都**直接读本文件**（纯文本行解析，不引脚本插件）；`gradle.properties` 里不再有版本段，也就不存在副本不一致。
 - 怎么改：在本目录执行 `./versions.py bump map-sdk-amap-850 1.0.1`（等价于手改本文件），再 `publish` 对应工程。
 - 与 APK 版本无关：`versionName/versionCode` 只在 `build.gradle.kts` 的 `skyBuild.*` 声明。
 
@@ -67,7 +67,7 @@ hmi-h6=1.0.0
 全仓库只有这一处 AAR 产物，既是编译期的依赖源，也是需要递 aar 时取文件的地方：
 
 - 结构：`maven-repo/com/sky/automap/<模块>/<版本>/<模块>-<版本>.aar`（同目录还有 POM、module 元数据、sha1）。
-- 13 个模块：`infrastructure`、`map-api`、`map-factory`、`map-impl-amap`、`map-impl-baidu`、`map-sdk-amap-850/-910`、`map-sdk-baidu-v21/-v22`、`business`、`hmi-api`、`hmi-h6`、`hmi-h9`。
+- 12 个模块：`infrastructure`、`map-api`（契约 + 门面）、`map-impl-amap`、`map-impl-baidu`、`map-sdk-amap-850/-910`、`map-sdk-baidu-v21/-v22`、`business`、`hmi-api`、`hmi-h6`、`hmi-h9`。
 - 不入库，由 `./build-all.py` 重建；要单独刷新某个工程：在该工程下 `./gradlew publish`。
 - 不参与打包的判定：APK 里打什么由 `app-builds.json` 的 `carModels` / `builds` 决定（`app/build.gradle.kts` 逐渠道生成依赖），与目录结构无关。
 

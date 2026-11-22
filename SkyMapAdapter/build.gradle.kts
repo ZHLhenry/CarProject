@@ -4,9 +4,8 @@ import org.gradle.api.publish.maven.MavenPublication
 // ============================================================================
 // SkyMapAdapter —— 地图适配层（独立工程）
 //
-// 产物（发布到 ../CarMapProject/maven-repo，共 8 个模块）：
-//   com.sky.automap:map-api            → 契约层 / 标准数据结构
-//   com.sky.automap:map-factory        → 门面（注入、取用、能力查询）
+// 产物（发布到 ../CarMapProject/maven-repo，共 7 个模块）：
+//   com.sky.automap:map-api            → 契约（map.api 包）+ 门面（map.factory 包）
 //   com.sky.automap:map-impl-amap      → 高德：厂商公共层 + 850/910 两段适配（包区分）
 //   com.sky.automap:map-impl-baidu     → 百度：厂商公共层 + v21/v22 两段适配（包区分）
 //   com.sky.automap:map-sdk-amap-850   → 高德 850 影子 SDK
@@ -14,7 +13,7 @@ import org.gradle.api.publish.maven.MavenPublication
 //   com.sky.automap:map-sdk-baidu-v21  → 百度 v21 影子 SDK
 //   com.sky.automap:map-sdk-baidu-v22  → 百度 v22 影子 SDK + 编译基线（两版并集）
 //
-// 架构红线：map-api / map-factory 不依赖任何厂商 SDK；map-impl-* 只 compileOnly 引用基线 SDK；
+// 架构红线：map-api 不依赖任何厂商 SDK；map-impl-* 只 compileOnly 引用基线 SDK；
 // 真正进 dex 的那一份由壳工程按车型注入。
 // 构建：./gradlew verifyMapSdkChain && ./gradlew publish
 // ============================================================================
@@ -114,14 +113,20 @@ registerChainCheck(
 // groupId 固定 com.sky.automap，artifactId = 模块名，版本取CarMapProject 下的 versions.properties
 // 中该 artifact 那一行；仓库位于 CarMapProject/maven-repo（与其它工程共享，免私服即可联调）。
 val automapGroup = "com.sky.automap"
-// AAR 版本表：唯一来源是 CarMapProject/versions.properties，由 ./versions.py sync 同步到
-// 本工程 gradle.properties 的 automap.version.* 键。这里直接读 Gradle 属性，不碰 extra、
-// 不引脚本插件 —— IDE 对顶层语句的脚本分析不可靠，写得越少越不会红。
-fun skyVersionOf(artifact: String): String =
-    providers.gradleProperty("automap.version.$artifact").orNull
-        ?: throw GradleException(
-            "gradle.properties 缺少 automap.version.$artifact，请先执行 CarMapProject/versions.py sync"
-        )
+// AAR 版本表：唯一来源是 CarMapProject/versions.properties（全仓库只此一份）。
+// 这里直接读该文件，不生成副本、不引脚本插件，IDE 不会红。
+fun skyVersionOf(artifact: String): String {
+    // 版本表是纯文本，直接按行读（不用 java.util.Properties：kts 里 `java` 会被
+    // JavaPluginExtension 遮蔽）；注释与空行跳过
+    val key = "$artifact="
+    return rootProject.file("../CarMapProject/versions.properties")
+        .takeIf { it.isFile }
+        ?.readLines()
+        ?.firstOrNull { it.trim().startsWith(key) }
+        ?.substringAfter("=")?.trim()
+        ?.takeIf { it.isNotEmpty() }
+        ?: throw GradleException("CarMapProject/versions.properties 里没有 $artifact 这一行")
+}
 
 subprojects {
     // 统一坐标：同工程内的 project 依赖在 POM 中同样映射为 com.sky.automap:<模块名>

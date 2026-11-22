@@ -29,7 +29,9 @@ android {
 }
 
 dependencies {
-    // 依赖本工程接口层（同工程 project 依赖，随 AAR 以 com.sky.automap:map-api 坐标写入 POM）
+    // 依赖契约 + 门面层（同工程 project 依赖，随 AAR 以 com.sky.automap:map-api 坐标写入 POM）。
+    // 本模块只允许用其中的 `map.api` 包（接口 / 数据模型），不引用 `map.factory` 包
+    // （MapManager / 注册表）—— 这条是约定，不是编译期隔离，评审时留意。
     api(project(":map-api"))
 
     // 只用于编译：`map-sdk-amap-910`（910 的 API 面 + 三版并集基线）。
